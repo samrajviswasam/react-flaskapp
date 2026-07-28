@@ -22,7 +22,7 @@ pipeline {
 
             steps {
 
-                dir('frontend') {
+                dir('react-app') {
 
                     sh 'npm install'
 
@@ -38,7 +38,7 @@ pipeline {
 
             steps {
 
-                dir('frontend') {
+                dir('react-app') {
 
                     sh 'npm run build'
 
@@ -54,7 +54,7 @@ pipeline {
 
             steps {
 
-                dir('backend') {
+                dir('flaskapp') {
 
                     sh '''
 
@@ -78,7 +78,7 @@ pipeline {
 
             steps {
 
-                dir('backend') {
+                dir('flaskapp') {
 
                     sh '''
 
