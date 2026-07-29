@@ -1,92 +1,74 @@
 pipeline {
     agent any
 
+    environment {
+        REPO_URL = 'https://github.com/your-username/your-public-repo.git'
+        BRANCH = 'main'
+
+        IMAGE_NAME = 'react-flaskapp'
+        IMAGE_TAG = 'latest'
+
+        CONTAINER_NAME = 'myapp-container'
+        HOST_PORT = '5000'
+        CONTAINER_PORT = '80'
+    }
+
     stages {
 
-        stage('Checkout Code') {
+        stage('Clone Repository') {
             steps {
-                git branch: 'master',
-                    url: 'https://github.com/samrajviswasam/myapp.git'
+                git branch: "${BRANCH}", url: "${REPO_URL}"
             }
         }
 
-        stage('Install React Dependencies') {
+        stage('Build Docker Image') {
             steps {
-                dir('react-app') {
-                    sh '''
-                        npm install
-                    '''
-                }
+                sh """
+                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                """
             }
         }
 
-        stage('Build React Application') {
+        stage('Stop Old Container') {
             steps {
-                dir('react-app') {
-                    sh '''
-                        npm run build
-                    '''
-                }
+                sh """
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
+                """
             }
         }
 
-        stage('Install Flask Dependencies') {
+        stage('Run Docker Container') {
             steps {
-                dir('flaskapp') {
-                    sh '''
-                        python3 -m venv venv
-                        venv/bin/pip install --upgrade pip
-                        venv/bin/pip install -r requirements.txt
-                    '''
-                }
+                sh """
+                    docker run -d \
+                    --name ${CONTAINER_NAME} \
+                    -p ${HOST_PORT}:${CONTAINER_PORT} \
+                    ${IMAGE_NAME}:${IMAGE_TAG}
+                """
             }
         }
 
-        stage('Stop Old Flask Server') {
+        stage('Verify Container') {
             steps {
-                sh '''
-                    pkill -f gunicorn || true
-                '''
-            }
-        }
-
-        stage('Start Flask Backend') {
-            steps {
-                dir('flaskapp') {
-                    sh '''
-                        nohup venv/bin/gunicorn \
-                        --bind 0.0.0.0:8000 \
-                        app:app \
-                        > gunicorn.log 2>&1 &
-                    '''
-                }
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                sh '''
-                    sleep 5
-                    curl http://localhost:8000 || true
-                '''
+                sh """
+                    docker ps
+                """
             }
         }
     }
 
     post {
         success {
-            echo "======================================="
-            echo "Deployment Successful"
-            echo "React Build Completed"
-            echo "Flask Backend Running on Port 8000"
-            echo "======================================="
+            echo 'Pipeline completed successfully.'
         }
 
         failure {
-            echo "======================================="
-            echo "Deployment Failed"
-            echo "Check the Jenkins Console Output"
-            echo "======================================="
+            echo 'Pipeline failed.'
+        }
+
+        always {
+            sh 'docker images'
         }
     }
 }
