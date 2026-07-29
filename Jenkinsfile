@@ -16,8 +16,10 @@ pipeline {
     stages {
 
         stage('Clone Repository') {
-            steps {
-                git branch: "${BRANCH}", url: "${REPO_URL}"
+    steps {
+        checkout scm
+    }
+}
             }
         }
 
