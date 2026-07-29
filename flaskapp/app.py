@@ -1,37 +1,22 @@
-import logging
-from flask import Flask
-from prometheus_flask_exporter import PrometheusMetrics
+from flask import Flask, send_from_directory, jsonify
+import os
 
+app = Flask(__name__,
+            static_folder="static",
+            static_url_path="")
 
-app = Flask(__name__)
+@app.route("/api/hello")
+def hello():
+    return jsonify({"message": "Hello from Flask"})
 
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
 
-# Enable Prometheus metrics
-metrics = PrometheusMetrics(app)
-
-
-logging.basicConfig(level=logging.INFO)
-
-
-@app.route("/")
-def home():
-
-    app.logger.info("Home endpoint accessed")
-
-    return "Flask App Running"
-
-
-@app.route("/test")
-def test():
-
-    app.logger.info("Test API called")
-
-    return "Testing"
+    return send_from_directory(app.static_folder, "index.html")
 
 
 if __name__ == "__main__":
-
-    app.run(
-        host="0.0.0.0",
-        port=5000
-    )
+    app.run(host="0.0.0.0", port=5000)
