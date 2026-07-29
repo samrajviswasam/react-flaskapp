@@ -7,7 +7,7 @@ app = Flask(__name__,
 
 @app.route("/api/hello")
 def hello():
-    return jsonify({"message": "Hello from Flask"})
+    return jsonify({"message": "Hello from Flask app backend is running successfully"})
 
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
