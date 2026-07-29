@@ -2,60 +2,51 @@ pipeline {
     agent any
 
     environment {
-        REPO_URL = 'https://github.com/your-username/your-public-repo.git'
-        BRANCH = 'main'
+        IMAGE_NAME = "react-flaskapp"
+        IMAGE_TAG = "latest"
 
-        IMAGE_NAME = 'react-flaskapp'
-        IMAGE_TAG = 'latest'
-
-        CONTAINER_NAME = 'myapp-container'
-        HOST_PORT = '5000'
-        CONTAINER_PORT = '80'
+        CONTAINER_NAME = "myapp-container"
+        HOST_PORT = "5000"
+        CONTAINER_PORT = "80"
     }
 
     stages {
 
-        stage('Clone Repository') {
-    steps {
-        checkout scm
-    }
-}
+        stage('Checkout Source') {
+            steps {
+                checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh """
-                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                """
+                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
             }
         }
 
         stage('Stop Old Container') {
             steps {
-                sh """
+                sh '''
                     docker stop ${CONTAINER_NAME} || true
                     docker rm ${CONTAINER_NAME} || true
-                """
+                '''
             }
         }
 
         stage('Run Docker Container') {
             steps {
-                sh """
+                sh '''
                     docker run -d \
                     --name ${CONTAINER_NAME} \
                     -p ${HOST_PORT}:${CONTAINER_PORT} \
                     ${IMAGE_NAME}:${IMAGE_TAG}
-                """
+                '''
             }
         }
 
         stage('Verify Container') {
             steps {
-                sh """
-                    docker ps
-                """
+                sh 'docker ps'
             }
         }
     }
