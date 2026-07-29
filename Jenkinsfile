@@ -7,7 +7,7 @@ pipeline {
 
         CONTAINER_NAME = "myapp-container"
         HOST_PORT = "5000"
-        CONTAINER_PORT = "80"
+        CONTAINER_PORT = "5000"
     }
 
     stages {
